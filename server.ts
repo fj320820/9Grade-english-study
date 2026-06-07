@@ -357,6 +357,15 @@ function getSimulatedChatResponse(coachId: string, messages: any[], unitTitle: s
  * Input: { messages: Array<{ sender: string, text: string }>, unitTitle: string, unitTopic: string, unitSkill?: string, difficultyLevel: string, coachId: string }
  * Output: { speechText: string, chineseTranslation: string }
  */
+app.get("/api/chat", (req: Request, res: Response): void => {
+  res.json({
+    status: "ok",
+    reply: "My apologies, I had a temporary connection issue. Please try again.",
+    speechText: "David English Growth Camp AI Chat is ready.",
+    chineseTranslation: "David英语成长营 AI对话端点已准备就绪。"
+  });
+});
+
 app.post("/api/chat", async (req: Request, res: Response): Promise<void> => {
   const { 
     messages = [], 
@@ -365,11 +374,12 @@ app.post("/api/chat", async (req: Request, res: Response): Promise<void> => {
     unitSkill = "", 
     difficultyLevel = "Intermediate",
     coachId = "david"
-  } = req.body;
+  } = req.body || {};
   try {
 
     if (!process.env.GEMINI_API_KEY) {
       res.json({
+        reply: "My apologies, I had a temporary connection issue. Please try again.",
         speechText: "Hey there! I'm here and ready to speak, but my API brain config is missing. Please add the GEMINI_API_KEY inside your Secrets panel!",
         chineseTranslation: "嗨！我已经准备好对话了，但是我的API密钥配置缺失。请在Secrets面板中添加GEMINI_API_KEY！"
       });
@@ -475,14 +485,17 @@ Provide the output in JSON format with two fields:
     }
     try {
       const fallbackResult = getSimulatedChatResponse(coachId, messages, unitTitle, unitTopic);
-      res.json({ ...fallbackResult, isFallback: true });
+      res.json({ 
+        ...fallbackResult, 
+        reply: "My apologies, I had a temporary connection issue. Please try again.",
+        isFallback: true 
+      });
     } catch (simError: any) {
       console.error("Critical: Fallback simulator failed:", simError);
-      res.status(500).json({
-        error: "An error occurred with my coach database.",
-        details: error.message,
-        speechText: "Oh dear! My connection seems to have a little hiccup. Could you type again or refresh the screen?",
-        chineseTranslation: "哎呀！我的连接有些小故障。你能重新打字或刷新屏幕吗？"
+      res.json({
+        reply: "My apologies, I had a temporary connection issue. Please try again.",
+        speechText: "My apologies, I had a temporary connection issue. Please try again.",
+        chineseTranslation: "抱歉！获取回复失败。我们继续尝试吧！你觉得呢？"
       });
     }
   }
