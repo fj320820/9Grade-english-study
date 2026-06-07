@@ -1,0 +1,10 @@
+{
+  "name": "David英语成长营",
+  "description": "\nDavid英语成长营 (David English Growth Camp)\n\n沪教版九年级英语AI学习伙伴\n\n专为沪教版九年级学生打造的英语成长系统，融合口语陪练、表达升级、教材同步写作与中考能力训练，帮助学生提升中考英语综合能力。\n",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
