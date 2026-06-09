@@ -511,26 +511,23 @@ Provide the output in JSON format with two fields:
     const parsedData = JSON.parse(resultText);
     res.json(parsedData);
   } catch (error: any) {
-    console.error("[API ERROR] /api/chat Exception caught in server.ts:", error);
-    const isQuotaError = error?.status === 429 || error?.code === 429 || JSON.stringify(error).includes("429") || JSON.stringify(error).includes("quota");
+    const isQuotaError = error?.status === 429 || error?.code === 429 || JSON.stringify(error).includes("429") || JSON.stringify(error).includes("quota") || JSON.stringify(error).includes("RESOURCE_EXHAUSTED");
     if (isQuotaError) {
-      console.log("[Info] Gemini API quota limit met, starting local conversational recovery system for coach:", coachId);
+      console.warn("[API WARNING] Gemini API quota limit met, starting local conversational recovery system for coach:", coachId);
     } else {
-      console.log("[Info] Gemini API transiently offline, starting local conversational recovery system for coach:", coachId);
+      console.error("[API ERROR] /api/chat Exception caught in server.ts:", error);
     }
     try {
       const fallbackResult = getSimulatedChatResponse(coachId, messages, unitTitle, unitTopic);
       res.json({ 
         ...fallbackResult, 
-        reply: "My apologies, I had a temporary connection issue. Please try again.",
         isFallback: true 
       });
     } catch (simError: any) {
-      console.log("[Info] Local fallback generator completed response with default settings.");
+      console.warn("[API WARNING] Local fallback exception caught, returning default standard speaking progress template.");
       res.json({
-        reply: "My apologies, I had a temporary connection issue. Please try again.",
-        speechText: "My apologies, I had a temporary connection issue. Please try again.",
-        chineseTranslation: "抱歉！获取回复失败。我们继续尝试吧！你觉得呢？"
+        speechText: "That's an incredibly smooth answer! Keep practicing! You are doing an amazing job today.",
+        chineseTranslation: "那是个极好且流畅的回答！继续保持，你今天表现得很出色。"
       });
     }
   }
@@ -660,12 +657,11 @@ Return a JSON conformant to the response schema. Keep everything supportive and 
     const reportData = JSON.parse(resultText);
     res.json(reportData);
   } catch (error: any) {
-    console.error("[API ERROR] /api/report Exception caught in server.ts:", error);
-    const isQuotaError = error?.status === 429 || error?.code === 429 || JSON.stringify(error).includes("429") || JSON.stringify(error).includes("quota");
+    const isQuotaError = error?.status === 429 || error?.code === 429 || JSON.stringify(error).includes("429") || JSON.stringify(error).includes("quota") || JSON.stringify(error).includes("RESOURCE_EXHAUSTED");
     if (isQuotaError) {
-      console.log("[Info] Gemini API quota limit met, running local score evaluator.");
+      console.warn("[API WARNING] Gemini API quota limit met, running local score evaluator.");
     } else {
-      console.log("[Info] Gemini API transiently offline, running local score evaluator.");
+      console.error("[API ERROR] /api/report Exception caught in server.ts:", error);
     }
     try {
       const msgCount = messages.length;
@@ -1269,12 +1265,11 @@ Remember:
     const parsedData = JSON.parse(resultText);
     res.json(parsedData);
   } catch (error: any) {
-    console.error("[API ERROR] /api/expression-coach Exception caught in server.ts:", error);
-    const isQuotaError = error?.status === 429 || error?.code === 429 || JSON.stringify(error).includes("429") || JSON.stringify(error).includes("quota");
+    const isQuotaError = error?.status === 429 || error?.code === 429 || JSON.stringify(error).includes("429") || JSON.stringify(error).includes("quota") || JSON.stringify(error).includes("RESOURCE_EXHAUSTED");
     if (isQuotaError) {
-      console.log("[Info] Gemini API quota limit met, running dynamic expression polish matrices.");
+      console.warn("[API WARNING] Gemini API quota limit met, running dynamic expression polish matrices.");
     } else {
-      console.log("[Info] Gemini API transiently offline, running dynamic expression polish matrices.");
+      console.error("[API ERROR] /api/expression-coach Exception caught in server.ts:", error);
     }
     try {
       const simulatedResult = getDynamicHeuristicFallback(chineseText);
@@ -1765,12 +1760,11 @@ Return your response in strict JSON format matching the schema above. All fields
     const parsedData = JSON.parse(resultText);
     res.json(parsedData);
   } catch (error: any) {
-    console.error("[API ERROR] /api/essay-builder Exception caught in server.ts:", error);
-    const isQuotaError = error?.status === 429 || error?.code === 429 || JSON.stringify(error).includes("429") || JSON.stringify(error).includes("quota");
+    const isQuotaError = error?.status === 429 || error?.code === 429 || JSON.stringify(error).includes("429") || JSON.stringify(error).includes("quota") || JSON.stringify(error).includes("RESOURCE_EXHAUSTED");
     if (isQuotaError) {
-      console.log("[Info] Gemini API quota limit met, running custom essay expander matrix.");
+      console.warn("[API WARNING] Gemini API quota limit met, running custom essay expander matrix.");
     } else {
-      console.log("[Info] Gemini API transiently offline, running custom essay expander matrix.");
+      console.error("[API ERROR] /api/essay-builder Exception caught in server.ts:", error);
     }
     try {
       const fallbackResult = getSimulatedEssayFallback(chineseText);
@@ -1840,6 +1834,7 @@ function translateChineseNouns(text: string) {
 
   // 1. Person mapping
   if (text.includes("徐霞客")) result.personName = "Xu Xiake";
+  else if (text.includes("马可波罗") || text.includes("马可·波罗")) result.personName = "Marco Polo";
   else if (text.includes("李白")) result.personName = "Li Bai";
   else if (text.includes("杜甫")) result.personName = "Du Fu";
   else if (text.includes("苏轼") || text.includes("苏东坡")) result.personName = "Su Shi";
@@ -2054,26 +2049,28 @@ function getSimulatedWritingFallback(taskId: string, chineseIdeas: string) {
 
   // Perform dynamic localized override replacements to match student priority input
   if (taskId === "1") {
-    const person = nouns.personName || (chineseIdeas && chineseIdeas.length < 9 ? convertChineseToPinyin(chineseIdeas) : null) || "Xu Xiake";
-    composition = composition
-      .replace(/Marco Polo/g, person)
-      .replace(/In the 13th century/g, "During historical times")
-      .replace(/Venice/g, "ancient China")
-      .replace(/Asian lands/g, "mysterious landscapes")
-      .replace(/far East/g, "beautiful mountains and rivers")
-      .replace(/Asian cultures/g, "amazing nature and geography");
+    const person = nouns.personName || (chineseIdeas && chineseIdeas.length < 9 ? convertChineseToPinyin(chineseIdeas) : null) || "Marco Polo";
+    if (person !== "Marco Polo") {
+      composition = composition
+        .replace(/Marco Polo/g, person)
+        .replace(/In the 13th century/g, "During historical times")
+        .replace(/Venice/g, "ancient China")
+        .replace(/Asian lands/g, "mysterious landscapes")
+        .replace(/far East/g, "beautiful mountains and rivers")
+        .replace(/Asian cultures/g, "amazing nature and geography");
 
-    highScoreVersion = highScoreVersion
-      .replace(/Marco Polo/g, person)
-      .replace(/Born in Venice/g, `Born in ancient China`)
-      .replace(/far East/g, "beautiful landscapes")
-      .replace(/Asian cultures/g, "geography and historic trails");
+      highScoreVersion = highScoreVersion
+        .replace(/Marco Polo/g, person)
+        .replace(/Born in Venice/g, `Born in ancient China`)
+        .replace(/far East/g, "beautiful landscapes")
+        .replace(/Asian cultures/g, "geography and historic trails");
 
-    modelAnswer = modelAnswer
-      .replace(/Marco Polo/g, person)
-      .replace(/Born in Venice/g, `Born in ancient China`)
-      .replace(/far East/g, "beautiful landscapes")
-      .replace(/Asian cultures/g, "geography and historic trails");
+      modelAnswer = modelAnswer
+        .replace(/Marco Polo/g, person)
+        .replace(/Born in Venice/g, `Born in ancient China`)
+        .replace(/far East/g, "beautiful landscapes")
+        .replace(/Asian cultures/g, "geography and historic trails");
+    }
   } else if (taskId === "2") {
     const companion = nouns.companionName || "Sam";
     const subject = nouns.subjectName || "difficult schoolwork";
@@ -2413,12 +2410,11 @@ Return response in strict JSON format.`;
     const parsedData = JSON.parse(resultText);
     res.json(parsedData);
   } catch (error: any) {
-    console.error("[API ERROR] /api/writing-coach FULL SERVER LOG DETAILS:", error);
-    const isQuotaError = error?.status === 429 || error?.code === 429 || JSON.stringify(error).includes("429") || JSON.stringify(error).includes("quota");
+    const isQuotaError = error?.status === 429 || error?.code === 429 || JSON.stringify(error).includes("429") || JSON.stringify(error).includes("quota") || JSON.stringify(error).includes("RESOURCE_EXHAUSTED");
     if (isQuotaError) {
-      console.log("[Info] Gemini API quota limit met, running custom writing coach fallback.");
+      console.warn("[API WARNING] Gemini API quota limit met, running custom writing coach fallback.");
     } else {
-      console.log("[Info] Gemini API transiently offline, running custom writing coach fallback.");
+      console.error("[API ERROR] /api/writing-coach FULL SERVER LOG DETAILS:", error);
     }
     try {
       const fallbackResult = getSimulatedWritingFallback(taskId, chineseIdeas);

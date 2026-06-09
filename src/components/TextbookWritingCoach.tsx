@@ -109,7 +109,7 @@ export default function TextbookWritingCoach({
       });
 
       if (!response.ok) {
-        throw new Error("Server communication went array.");
+        throw new Error("Server communication went awry.");
       }
 
       const data = await response.json();

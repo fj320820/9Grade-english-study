@@ -167,7 +167,12 @@ Return a JSON conformant to the response schema. Keep everything supportive and 
     return res.status(200).json(reportData);
 
   } catch (error: any) {
-    console.error("[API ERROR] /api/report error details:", error);
+    const isQuotaError = error?.status === 429 || error?.code === 429 || JSON.stringify(error).includes("429") || JSON.stringify(error).includes("quota") || JSON.stringify(error).includes("RESOURCE_EXHAUSTED");
+    if (isQuotaError) {
+      console.warn("[API WARNING] Gemini API quota limit met, running custom score evaluator fallback.");
+    } else {
+      console.error("[API ERROR] /api/report error details:", error);
+    }
     return res.status(200).json(executeFallback());
   }
 }

@@ -185,7 +185,12 @@ Return your response in strict JSON format. All fields are required.`;
     return res.status(200).json(parsedData);
 
   } catch (error: any) {
-    console.error("[API ERROR] /api/essay-builder error details:", error);
+    const isQuotaError = error?.status === 429 || error?.code === 429 || JSON.stringify(error).includes("429") || JSON.stringify(error).includes("quota") || JSON.stringify(error).includes("RESOURCE_EXHAUSTED");
+    if (isQuotaError) {
+      console.warn("[API WARNING] Gemini API quota limit met, running custom essay expander matrix.");
+    } else {
+      console.error("[API ERROR] /api/essay-builder error details:", error);
+    }
     return res.status(200).json(getSimulatedEssayFallback(chineseText));
   }
 }

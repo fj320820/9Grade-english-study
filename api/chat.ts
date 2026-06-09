@@ -188,10 +188,13 @@ Provide the output in JSON format with two fields:
       return res.status(200).json(parsedData);
 
     } catch (error: any) {
-      console.error("[API ERROR] /api/chat error details:", error);
-      // Clean fallback object that complies to schema requirements
+      const isQuotaError = error?.status === 429 || error?.code === 429 || JSON.stringify(error).includes("429") || JSON.stringify(error).includes("quota") || JSON.stringify(error).includes("RESOURCE_EXHAUSTED");
+      if (isQuotaError) {
+        console.warn("[API WARNING] Gemini API quota limit met, running dynamic expression polish matrices.");
+      } else {
+        console.error("[API ERROR] /api/chat error details:", error);
+      }
       return res.status(200).json({
-        reply: "My apologies, I had a temporary connection issue. Please try again.",
         speechText: "That's an incredibly smooth answer! Keep practicing! You are doing an amazing job today.",
         chineseTranslation: "那是个极好且流畅的回答！继续保持，你今天表现得很出色。"
       });

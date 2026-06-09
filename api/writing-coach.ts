@@ -440,6 +440,7 @@ function translateChineseNouns(text: string) {
 
   // Person mapping
   if (text.includes("徐霞客")) result.personName = "Xu Xiake";
+  else if (text.includes("马可波罗") || text.includes("马可·波罗")) result.personName = "Marco Polo";
   else if (text.includes("李白")) result.personName = "Li Bai";
   else if (text.includes("杜甫")) result.personName = "Du Fu";
   else if (text.includes("苏轼") || text.includes("苏东坡")) result.personName = "Su Shi";
@@ -507,8 +508,11 @@ function translateChineseNouns(text: string) {
 function getSimulatedWritingFallback(taskId: string, chineseIdeas: string) {
   const task = WRITING_TASKS.find(t => t.id === taskId) || WRITING_TASKS[0];
   const ideasText = chineseIdeas ? ` (融合想法: ${chineseIdeas})` : "";
+
+  // Dynamic noun conversion derived from user's manual ideas override
   const nouns = translateChineseNouns(chineseIdeas);
 
+  // Dedicated handcrafted textbook database to ensure specific structures & linguistic elements for each lesson
   const fallbackDatabase: Record<string, { composition: string; highScoreVersion: string; modelAnswer: string }> = {
     "1": {
       composition: `Marco Polo is one of the most adventurous travel writers in history. In the 13th century, he spent over twenty years traveling across Asian lands. His famous records of travel not only describe exotic landscapes but also bridge cultures, inspiring countless future explorers to pursue their dreams.`,
@@ -518,42 +522,97 @@ function getSimulatedWritingFallback(taskId: string, chineseIdeas: string) {
     "2": {
       composition: `Dear Sam,\nI am writing to express my deepest gratitude for your timely assistance yesterday. When I struggled with my math homework, you spent two hours patiently explaining the difficult formulas. Your kind help really pulled me through the difficulty, and I am incredibly grateful to have you as a friend.\nBest wishes,\nJerry.`,
       highScoreVersion: `Dear Sam,\nI am writing this email to express my heartfelt gratitude for your timely assistance. Words cannot express how thankful I am for your help when I was struggling with my math homework. It was incredibly thoughtful of you to extend a helping hand during my moment of despair, which helped me pull through the difficulties. I deeply appreciate your warm generosity.\nBest regards,\nJerry.`,
-      modelAnswer: `Dear Sam,<br/><strong>I am writing this email to express my heartfelt gratitude for</strong> <span class="bg-indigo-50 border border-indigo-100 px-1 text-indigo-700 font-semibold rounded mx-0.5 text-xs inline-block" title="书信正规开头">[句式: I am writing this to express...]</span> your timely assistance. Words cannot express how thankful I am for your help when I was struggling with my math homework. It was incredibly thoughtful of you to <strong>extend a helping hand</strong> <span class="bg-emerald-50 border border-emerald-100 px-1 text-emerald-700 font-semibold rounded mx-0.5 text-xs inline-block" title="生动成语短语替代 help me">[核心: extend a helping hand]</span> during my moment of despair, <strong>which helped me pull through the difficulties</strong> <span class="bg-amber-50 border border-amber-100 px-1 text-amber-500 font-semibold rounded mx-0.5 text-xs inline-block" title="定语从句串联因果">[从句亮点: which helped me pull through...]</span>. I deeply appreciate your warm generosity.<br/>Best regards,<br/>Jerry.`
+      modelAnswer: `Dear Sam,<br/><strong>I am writing this email to express my heartfelt gratitude for</strong> <span class="bg-indigo-50 border border-indigo-100 px-1 text-indigo-700 font-semibold rounded mx-0.5 text-xs inline-block" title="书信正规开头">[句式: I am writing this to express...]</span> your timely assistance. Words cannot express how thankful I am for your help when I was struggling with my math homework. It was incredibly thoughtful of you to <strong>extend a helping hand</strong> <span class="bg-emerald-50 border border-emerald-100 px-1 text-emerald-700 font-semibold rounded mx-0.5 text-xs inline-block" title="生动成语短语替代 help me">[核心: extend a helping hand]</span> during my moment of despair, <strong>which helped me pull through the difficulties</strong> <span class="bg-amber-50 border border-amber-100 px-1 text-amber-555 font-semibold rounded mx-0.5 text-xs inline-block" title="定语从句串联因果">[从句亮点: which helped me pull through...]</span>. I deeply appreciate your warm generosity.<br/>Best regards,<br/>Jerry.`
     },
     "3": {
       composition: `My typical day as a Grade 9 student begins at 6:30 a.m. After a healthy breakfast, I throw myself into intensive but rewarding studies at school. The afternoon highlight is always playing basketball with my classmates, which relieves stress. Looking back, everyday efforts bring me closer to my dreams.`,
       highScoreVersion: `My ordinary days usually commence with an active morning routine to begin a refreshing day. Having accomplished my morning studies, I proceeded to participate in various stimulating campus activities. In the afternoon, I established a structured routine by playing basketball, through which I find immense satisfaction in persistent self-improvement. Looking back on this rewarding day, I realize that even simple tasks carry profound meaning.`,
       modelAnswer: `My ordinary days usually <strong>commence with</strong> <span class="bg-indigo-50 border border-indigo-100 px-1 text-indigo-700 font-semibold rounded mx-0.5 text-xs inline-block" title="替代 begin">[高分词汇: commence with]</span> an active morning routine to <strong>begin a refreshing day</strong> <span class="bg-emerald-50 border border-emerald-100 px-1 text-emerald-700 font-semibold rounded mx-0.5 text-xs inline-block" title="美化开头">[亮点: begin a refreshing day]</span>. <strong>Having accomplished my morning studies</strong> <span class="bg-amber-50 border border-amber-100 px-1 text-amber-700 font-semibold rounded mx-0.5 text-xs inline-block" title="现在分词作时间状语，完美拉开间距">[句法亮点: Having accomplished...]</span>, I proceeded to participate in stimulating activities. In the afternoon, I established a structured routine by playing basketball, through which I <strong>find immense satisfaction in</strong> <span class="bg-pink-50 border border-pink-100 px-1 text-pink-700 font-semibold rounded mx-0.5 text-xs inline-block" title="表达满足感的深度表达">[加分词组: find immense satisfaction in]</span> persistent self-improvement.`
+    },
+    "4": {
+      composition: `After the devastating typhoon hit Shanghai, many homeless people were left cold and damp. Our school volunteer club immediately took action. We bought sleeping bags and distributed hot pumpkin soup to those staying under temporary bridges. This small act of kindness showed that unity raises hope even in dark times.`,
+      highScoreVersion: `In the wake of the devastating typhoon, a destructive natural disaster, many homeless citizens were left in critical conditions. Driven by empathy, our volunteer club took immediate actions to distribute relief materials such as sleeping bags, blankets, and hot pumpkin soup. It is of monumental significance for us to stand together, demonstrate solidarity and care, and offer shelter to those in desperate need.`,
+      modelAnswer: `<strong>In the wake of the devastating typhoon</strong> <span class="bg-indigo-50 border border-indigo-100 px-1 text-indigo-700 font-semibold rounded mx-0.5 text-xs inline-block" title="地道环境背景交代">[高级介词短语: In the wake of...]</span>, a destructive natural disaster, many homeless citizens were left in critical conditions. Driven by empathy, our volunteer club took immediate actions to <strong>distribute relief materials</strong> <span class="bg-emerald-50 border border-emerald-100 px-1 text-emerald-700 font-semibold rounded mx-0.5 text-xs inline-block" title="中考救灾极佳词组">[亮点: distribute relief materials]</span>. It is <strong>of monumental significance for us to</strong> <span class="bg-amber-50 border border-amber-100 px-1 text-amber-700 font-semibold rounded mx-0.5 text-xs inline-block" title="替代 It is important for us to">[句式亮点: of monumental significance...]</span> stand together and <strong>demonstrate solidarity and care</strong> <span class="bg-pink-50 border border-pink-100 px-1 text-pink-700 font-semibold rounded mx-0.5 text-xs inline-block" title="高度提炼人文关怀主题">[高分表达: demonstrate solidarity and care]</span>.`
+    },
+    "5": {
+      composition: `To improve my English essays, I have set up a weekly writing schedule. First, I read classic Shanghai exam sample essays to note high-score expressions. Then, I write one complete paragraph and ask my teacher for active feedback. I am confident that these continuous modifications will polish my writing skills.`,
+      highScoreVersion: `Aiming to reach higher efficiency, I have formulated a comprehensive self-improvement plan. To overcome my academic weaknesses, the first critical step I should take is to identify critical flaws in my daily learning habits. By cultivating self-discipline and keeping track of my mistakes, I can seek active feedback from teachers. By sticking to this daily reflection, I am thoroughly convinced that I will make remarkable progress.`,
+      modelAnswer: `<strong>Aiming to reach higher efficiency</strong> <span class="bg-indigo-50 border border-indigo-100 px-1 text-indigo-700 font-semibold rounded mx-0.5 text-xs inline-block" title="非谓语起句表达目的">[句型: Aiming to reach...]</span>, I have formulated a comprehensive self-improvement plan. First, I must <strong>identify critical flaws</strong> <span class="bg-emerald-50 border border-emerald-100 px-1 text-emerald-700 font-semibold rounded mx-0.5 text-xs inline-block" title="精准找到痛点">[亮点: identify critical flaws]</span> in my weekly routines. Second, by <strong>cultivating self-discipline</strong> <span class="bg-amber-50 border border-amber-100 px-1 text-amber-700 font-semibold rounded mx-0.5 text-xs inline-block" title="自学核心短语">[亮点: cultivate self-discipline]</span>, I will stay focused. By sticking to this daily reflection, I am thoroughly convinced that I will <strong>make remarkable progress</strong> <span class="bg-pink-50 border border-pink-100 px-1 text-pink-700 font-semibold rounded mx-0.5 text-xs inline-block" title="高标替代 make progress">[高分表达: make remarkable progress]</span>.`
+    },
+    "6": {
+      composition: `My house is always filled with laughter. We love having family dinners on Friday nights, where we enjoy home-cooked meals and share funny tales from school. My parents always listen with warm smiles. Their constant support and gentle wisdom make my family a secure harbor.`,
+      highScoreVersion: `My warm family serves as a peaceful harbor that protects me from external stress. On typical Saturday nights, my family members gather together to share their joys and concerns. It is within this harmonious domestic atmosphere that we communicate as equals, which successfully bridges the generation gap. I am deeply blessed to receive their unconditional love and backup.`,
+      modelAnswer: `My warm family <strong>serves as a peaceful harbor that protects me from</strong> <span class="bg-indigo-50 border border-indigo-100 px-1 text-indigo-700 font-semibold rounded mx-0.5 text-xs inline-block" title="生动的比喻写法">[句法: serves as a peaceful harbor...]</span> external stress. <strong>It is within this harmonious domestic atmosphere that</strong> <span class="bg-emerald-50 border border-emerald-100 px-1 text-emerald-700 font-semibold rounded mx-0.5 text-xs inline-block" title="强调句型结构拉满">[句式亮点: It is... that...]</span> we communicate as equals, which successfully <strong>bridges the generation gap</strong> <span class="bg-amber-50 border border-amber-100 px-1 text-amber-700 font-semibold rounded mx-0.5 text-xs inline-block" title="消除代沟亮点短语">[核心: bridge the generation gap]</span>. I am deeply blessed to receive their <strong>unconditional love and backup</strong> <span class="bg-pink-50 border border-pink-100 px-1 text-pink-700 font-semibold rounded mx-0.5 text-xs inline-block" title="无条件的爱与后盾">[亮点: unconditional love and backup]</span>.`
+    },
+    "7": {
+      composition: `Dear Aunt Linda,\nHow have you been? I hope everything goes well with you. I am writing to tell you about our recent English drama festival. My class performed 'Tom Sawyer' and won first prize! I played Tom and had so much fun on stage. I really hope you can visit us soon.\nBest love,\nJerry.`,
+      highScoreVersion: `Dear Aunt Linda,\nI hope this letter finds you in the excellent health and high spirits. I cannot write to you without sharing the thrilling updates regarding my recent academic achievements. We recently held an English drama festival, where my class won first prize. I played the main role and had an unforgettable experience on stage. I look forward to meeting up with you soon.\nSincere love,\nJerry.`,
+      modelAnswer: `Dear Aunt Linda,<br/><strong>I hope this letter finds you in the excellent health and high spirits</strong> <span class="bg-indigo-50 border border-indigo-100 px-1 text-indigo-700 font-semibold rounded mx-0.5 text-xs inline-block" title="英文书信黄金开头文雅句">[句式: I hope this letter finds you...]</span>. I cannot write to you without sharing the <strong>thrilling updates</strong> <span class="bg-emerald-50 border border-emerald-100 px-1 text-emerald-700 font-semibold rounded mx-0.5 text-xs inline-block" title="取代 exciting news">[亮点: thrilling updates]</span> regarding my recent <strong>academic achievements</strong> <span class="bg-amber-50 border border-amber-100 px-1 text-amber-700 font-semibold rounded mx-0.5 text-xs inline-block" title="学业表现亮点词组">[加分词词: academic achievements]</span>. I played the main role and had an unforgettable experience. I <strong>look forward to meeting up</strong> <span class="bg-pink-50 border border-pink-100 px-1 text-pink-700 font-semibold rounded mx-0.5 text-xs inline-block" title="to是介词，后面接动名词">[语法扣分预防点: look forward to meeting up]</span> with you soon.<br/>Sincere love,<br/>Jerry.`
+    },
+    "8": {
+      composition: `Ladies and gentlemen, welcome to our annual English Festival! I am your host, Jerry. Today, we are proud to present brilliant class dramas and spelling bees. Get ready to be amazed by our talented peers! Let us start with a big round of applause for Class 1!`,
+      highScoreVersion: `Ladies and gentlemen, a very warm welcome to today's special program. I am your host today, and it is my absolute honor and privilege to present this exciting event. Today, we have invited many distinguished guests and outstanding classmates on stage. Let us prepare for their captivating performance with a big round of applause!`,
+      modelAnswer: `Ladies and gentlemen, <strong>a very warm welcome to today's special program of</strong> <span class="bg-indigo-50 border border-indigo-100 px-1 text-indigo-700 font-semibold rounded mx-0.5 text-xs inline-block" title="地道的主持开场白">[句式: a very warm welcome to...]</span> events. I am your host today, and it is my <strong>absolute honor and privilege to present</strong> <span class="bg-emerald-50 border border-emerald-100 px-1 text-emerald-700 font-semibold rounded mx-0.5 text-xs inline-block" title="荣幸至极主持高阶套话">[亮点: absolute honor and privilege to...]</span> this exciting event. Today, we have invited many <strong>distinguished guests</strong> <span class="bg-amber-50 border border-amber-100 px-1 text-amber-700 font-semibold rounded mx-0.5 text-xs inline-block" title="替代 important people">[高级称呼: distinguished guests]</span>. Let us prepare for their <strong>captivating performance</strong> <span class="bg-pink-50 border border-pink-100 px-1 text-pink-700 font-semibold rounded mx-0.5 text-xs inline-block" title="极具感染力的表演">[亮点: captivating performance]</span> with a big round of applause!`
+    },
+    "9": {
+      composition: `Nestled on Nanjing Road, 'Green Oasis' is a delightful spot for healthy food. Their signature dish, baked salmon with herbs, is a mouth-watering delicacy. The fish is tender and perfectly matched with fresh organic salads. The cozy green interior and warm service make it highly recommended.`,
+      highScoreVersion: `Nestled in the heart of Shanghai, 'Green Oasis' offers a unique gastronomic journey for health enthusiasts. As for the signature dish, the baked salmon is a mouth-watering delicacy with rich flavors and perfect texture. The attentive waiters and cozy and elegant interior make this eatery an ideal spot for family dinners.`,
+      modelAnswer: `<strong>Nestled in the heart of Shanghai</strong> <span class="bg-indigo-50 border border-indigo-100 px-1 text-indigo-700 font-semibold rounded mx-0.5 text-xs inline-block" title="分词短语作状语交代餐馆地理位置">[句法: Nestled in the heart of...]</span>, 'Green Oasis' offers a unique culinary adventure. As for the <strong>signature dish</strong> <span class="bg-emerald-50 border border-emerald-100 px-1 text-emerald-700 font-semibold rounded mx-0.5 text-xs inline-block" title="招牌菜地道表达">[核心: signature dish]</span>, the baked salmon is a <strong>mouth-watering delicacy</strong> <span class="bg-amber-50 border border-amber-100 px-1 text-amber-700 font-semibold rounded mx-0.5 text-xs inline-block" title="令人垂涎欲滴的佳肴代替 delicious food">[亮点: mouth-watering delicacy]</span>. The attentive waiters and <strong>cozy and elegant interior</strong> <span class="bg-pink-50 border border-pink-100 px-1 text-pink-700 font-semibold rounded mx-0.5 text-xs inline-block" title="就餐环境绝妙描写">[环境描写: cozy and elegant interior]</span> make this eatery highly recommended.`
+    },
+    "10": {
+      composition: `This story report is on 'Surprise Endings'. Penned by O. Henry, the story describes two characters who plan to meet after twenty years. The unexpected twist at the end reveals one had become a policeman and the other a criminal. This clever plot teaches us that fate works in unexpected ways.`,
+      highScoreVersion: `The captivating short story under the title of 'Surprise Endings' is penned by the renowned author O. Henry. The story centers on a dramatic reunion of two childhood companions after twenty years. With an unexpected twist of plot at the climax, it leaves readers deeply reflective of human nature. This narrative serves as a moral lesson that choices define our life paths.`,
+      modelAnswer: `The captivating short story under the title of 'Surprise Endings' is <strong>penned by the renowned author</strong> <span class="bg-indigo-50 border border-indigo-100 px-1 text-indigo-700 font-semibold rounded mx-0.5 text-xs inline-block" title="由……著名作家所著">[亮点短语: penned by the renowned author...]</span> O. Henry. The story centers on a dramatic reunion. With an <strong>unexpected twist of plot</strong> <span class="bg-emerald-50 border border-emerald-100 px-1 text-emerald-700 font-semibold rounded mx-0.5 text-xs inline-block" title="情节跌宕起伏">[小说解析核心: unexpected twist of plot]</span>, it leaves readers highly interested. This narrative serves as a <strong>moral lesson</strong> <span class="bg-amber-50 border border-amber-100 px-1 text-amber-700 font-semibold rounded mx-0.5 text-xs inline-block" title="经典道德启迪词汇">[核心: moral lesson]</span> that choices, rather than raw luck, shape our destiny.`
+    },
+    "11": {
+      composition: `The most valuable gift I have received is an old dictionary from my grandfather. On my twelfth birthday, he handed it to me, saying that knowledge opens gates. It holds immense sentimental value because it reminds me of his love and encourages me to persist during hard study hours.`,
+      highScoreVersion: `Among all the lovely souvenirs I have gathered, this grandfather's dictionary stands out as my most precious treasure. Given to me by my grandfather upon my fifteen birthday, it holds immense sentimental value. This gift represents a priceless spiritual wealth for me, acting as a standard of constant motivation that guides my academic growth and persistence.`,
+      modelAnswer: `Among all the lovely souvenirs I have gathered, this grandfather's dictionary stands out as my most precious treasure. Given to me upon my fifteen birthday, it <strong>holds immense sentimental value</strong> <span class="bg-indigo-50 border border-indigo-100 px-1 text-indigo-700 font-semibold rounded mx-0.5 text-xs inline-block" title="具有巨大的情感纪念价值">[亮点: holds immense sentimental value]</span>. This gift represents a <strong>priceless spiritual wealth</strong> <span class="bg-emerald-50 border border-emerald-100 px-1 text-emerald-700 font-semibold rounded mx-0.5 text-xs inline-block" title="无价的精神财富">[核心: priceless spiritual wealth]</span> for me, acting as a <strong>standard of constant motivation</strong> <span class="bg-amber-50 border border-amber-100 px-1 text-amber-555 font-semibold rounded mx-0.5 text-xs inline-block" title="不断激励的阶梯/标杆">[高分表达: standard of constant motivation]</span> that guides my growth.`
+    },
+    "12": {
+      composition: `Basketball has always been my favourite sport. Every Wednesday school break, my classmates and I dash to the playground to play. This dynamic sport demands quick reflexes and, more importantly, fosters team spirit. It keeps me healthy and helps me shake off academic pressure.`,
+      highScoreVersion: `Basketball has emerged as my absolute favorite sport because it represents both physical vigor and joy. Not only does this dynamic sport require extreme speed and agility, but it also builds robust physical fitness. Furthermore, playing matches fosters team spirit and unity among classmates. Whenever I feel stressed from academic work, heading to the court effectively relieves my psychological pressure.`,
+      modelAnswer: `Basketball has <strong>emerged as my absolute favorite sport because</strong> <span class="bg-indigo-50 border border-indigo-100 px-1 text-indigo-700 font-semibold rounded mx-0.5 text-xs inline-block" title="脱颖而出，跃升为我最喜欢的运动">[句式亮点: emerged as my absolute favorite...]</span> it represents joy. Not only does this dynamic sport require extreme speed, but it also <strong>builds robust physical fitness</strong> <span class="bg-emerald-50 border border-emerald-100 px-1 text-emerald-700 font-semibold rounded mx-0.5 text-xs inline-block" title="强身健体的高级替换语">[亮点: build robust physical fitness]</span>. Furthermore, playing matches <strong>fosters team spirit and unity</strong> <span class="bg-amber-50 border border-amber-100 px-1 text-amber-700 font-semibold rounded mx-0.5 text-xs inline-block" title="团队合作意识培养">[核心词汇: fosters team spirit and unity]</span>. Heading to the court effectively <strong>relieves my psychological pressure</strong> <span class="bg-pink-50 border border-pink-100 px-1 text-pink-700 font-semibold rounded mx-0.5 text-xs inline-block" title="替代 relax myself / ease stress">[考分表达: relieves my psychological pressure]</span>.`
+    },
+    "13": {
+      composition: `Dear Tom,\nI was deeply saddened to hear that you have been under the weather. Please rest well and do not worry about schoolwork. I have copied all of this week's English lesson notes and will help you catch up once you feel better. Wishing you a very speedy recovery!\nBest,\nJerry.`,
+      highScoreVersion: `Dear Tom,\nI was deeply saddened to hear that you have been under the weather recently and missed school. Please do not worry about school lessons; I have prepared a diligent copy of lesson notes for you. Rest well, take care of yourself, and I wish you a speedy recovery. We look forward to your energetic return to our warm classroom community.\nBest,\nJerry.`,
+      modelAnswer: `Dear Tom,<br/><strong>I was deeply saddened to hear that you have been under the weather recently</strong> <span class="bg-indigo-50 border border-indigo-100 px-1 text-indigo-700 font-semibold rounded mx-0.5 text-xs inline-block" title="听闻同学身体抱恙表示难过关心">[句式: I was deeply saddened to hear...]</span>. Please do not worry about school lessons; I have prepared a <strong>diligent copy of lesson notes</strong> <span class="bg-emerald-50 border border-emerald-100 px-1 text-emerald-700 font-semibold rounded mx-0.5 text-xs inline-block" title="上课复习笔记">[亮点词组: diligent copy of lesson notes]</span> for you. Rest well, take care of yourself, and I <strong>wish you a speedy recovery</strong> <span class="bg-amber-50 border border-amber-100 px-1 text-amber-700 font-semibold rounded mx-0.5 text-xs inline-block" title="祝早日康复经典高分尾句">[核心: wish a speedy recovery]</span>. We look forward to your energetic return.`
     }
   };
 
+  // Extract selected static resource block or default to Task 1
   const targetMatch = fallbackDatabase[taskId] || fallbackDatabase["1"];
 
+  // Appending personalized user comments to the text blocks if student wrote ideas
   let composition = targetMatch.composition;
   let highScoreVersion = targetMatch.highScoreVersion;
   let modelAnswer = targetMatch.modelAnswer;
 
+  // Perform dynamic localized override replacements to match student priority input
   if (taskId === "1") {
-    const person = nouns.personName || (chineseIdeas && chineseIdeas.length < 9 ? convertChineseToPinyin(chineseIdeas) : null) || "Xu Xiake";
-    composition = composition
-      .replace(/Marco Polo/g, person)
-      .replace(/In the 13th century/g, "During historical times")
-      .replace(/Venice/g, "ancient China")
-      .replace(/Asian lands/g, "mysterious landscapes")
-      .replace(/far East/g, "beautiful mountains and rivers")
-      .replace(/Asian cultures/g, "amazing nature and geography");
+    const person = nouns.personName || (chineseIdeas && chineseIdeas.length < 9 ? convertChineseToPinyin(chineseIdeas) : null) || "Marco Polo";
+    if (person !== "Marco Polo") {
+      composition = composition
+        .replace(/Marco Polo/g, person)
+        .replace(/In the 13th century/g, "During historical times")
+        .replace(/Venice/g, "ancient China")
+        .replace(/Asian lands/g, "mysterious landscapes")
+        .replace(/far East/g, "beautiful mountains and rivers")
+        .replace(/Asian cultures/g, "amazing nature and geography");
 
-    highScoreVersion = highScoreVersion
-      .replace(/Marco Polo/g, person)
-      .replace(/Born in Venice/g, `Born in ancient China`)
-      .replace(/far East/g, "beautiful landscapes")
-      .replace(/Asian cultures/g, "geography and historic trails");
+      highScoreVersion = highScoreVersion
+        .replace(/Marco Polo/g, person)
+        .replace(/Born in Venice/g, `Born in ancient China`)
+        .replace(/far East/g, "beautiful landscapes")
+        .replace(/Asian cultures/g, "geography and historic trails");
 
-    modelAnswer = modelAnswer
-      .replace(/Marco Polo/g, person)
-      .replace(/Born in Venice/g, `Born in ancient China`)
-      .replace(/far East/g, "beautiful landscapes")
-      .replace(/Asian cultures/g, "geography and historic trails");
+      modelAnswer = modelAnswer
+        .replace(/Marco Polo/g, person)
+        .replace(/Born in Venice/g, `Born in ancient China`)
+        .replace(/far East/g, "beautiful landscapes")
+        .replace(/Asian cultures/g, "geography and historic trails");
+    }
   } else if (taskId === "2") {
     const companion = nouns.companionName || "Sam";
     const subject = nouns.subjectName || "difficult schoolwork";
@@ -572,8 +631,168 @@ function getSimulatedWritingFallback(taskId: string, chineseIdeas: string) {
     composition = composition.replace(/playing basketball with my classmates/g, activity);
     highScoreVersion = highScoreVersion.replace(/playing basketball/g, activity);
     modelAnswer = modelAnswer.replace(/playing basketball/g, activity);
+  } else if (taskId === "4") {
+    const materials = nouns.giftName || "relief materials like warm blankets and bread";
+    composition = composition.replace(/sleeping bags and distributed hot pumpkin soup/g, `essential supplies including ${materials}`);
+    highScoreVersion = highScoreVersion.replace(/sleeping bags, blankets, and hot pumpkin soup/g, materials);
+    modelAnswer = modelAnswer.replace(/distribute relief materials/g, `distribute relief materials like ${materials}`);
+  } else if (taskId === "5") {
+    const subject = nouns.subjectName ? `my ${nouns.subjectName}` : "my target study habits";
+    composition = composition.replace(/my English essays/g, subject);
+    highScoreVersion = highScoreVersion.replace(/my academic weaknesses/g, `my weaknesses in ${subject}`);
+    modelAnswer = modelAnswer.replace(/my weekly routines/g, `my routines in ${subject}`);
+  } else if (taskId === "7") {
+    const hasCustomIdeas = chineseIdeas && 
+      !chineseIdeas.includes("戏剧") && 
+      !chineseIdeas.includes("话剧") && 
+      !chineseIdeas.includes("演出") && 
+      !chineseIdeas.includes("表演");
+
+    if (hasCustomIdeas) {
+      let planDetails = [];
+      let planDetailsHigh = [];
+      
+      let place = "some beautiful places";
+      if (chineseIdeas.includes("杭州")) place = "Hangzhou";
+      else if (chineseIdeas.includes("北京")) place = "Beijing";
+      else if (chineseIdeas.includes("上海")) place = "Shanghai";
+      else if (chineseIdeas.includes("南京")) place = "Nanjing";
+      else if (chineseIdeas.includes("海南")) place = "Hainan";
+      else if (chineseIdeas.includes("成都")) place = "Chengdu";
+      else if (chineseIdeas.includes("西安")) place = "Xi'an";
+      
+      if (chineseIdeas.includes("旅游") || chineseIdeas.includes("旅行") || chineseIdeas.includes("去")) {
+        planDetails.push(`travel to ${place} for a relaxing vacation`);
+        planDetailsHigh.push(`embark on an exciting journey to ${place} to explore its scenic landscapes`);
+      }
+      
+      if (chineseIdeas.includes("读") || chineseIdeas.includes("小说") || chineseIdeas.includes("看书") || chineseIdeas.includes("阅读")) {
+        let count = "some";
+        if (chineseIdeas.includes("三本") || chineseIdeas.includes("3本") || chineseIdeas.includes("三")) count = "three";
+        else if (chineseIdeas.includes("两本") || chineseIdeas.includes("2本") || chineseIdeas.includes("两") || chineseIdeas.includes("二")) count = "two";
+        else if (chineseIdeas.includes("一本") || chineseIdeas.includes("1本") || chineseIdeas.includes("一")) count = "a";
+        
+        planDetails.push(`read ${count} interesting English novels to improve my English`);
+        planDetailsHigh.push(`delve into ${count} classical English novels to broaden my academic horizons and appreciate literature`);
+      }
+      
+      if (chineseIdeas.includes("学") || chineseIdeas.includes("英语") || chineseIdeas.includes("课程")) {
+        planDetails.push("study hard to improve my academic skills");
+        planDetailsHigh.push("cultivate self-discipline and enhance my critical learning habits");
+      }
+      
+      if (chineseIdeas.includes("羽毛球") || chineseIdeas.includes("篮球") || chineseIdeas.includes("运动") || chineseIdeas.includes("跑步") || chineseIdeas.includes("锻炼")) {
+        const sport = nouns.activityName || "sports";
+        planDetails.push(`do regular exercise like playing ${sport} to stay healthy`);
+        planDetailsHigh.push(`participate in regular physical exercise such as ${sport} to stay fit and relieve pressure`);
+      }
+
+      if (planDetails.length === 0) {
+        const pinyinIdeas = convertChineseToPinyin(chineseIdeas);
+        planDetails.push(`do some interesting things like ${pinyinIdeas.toLowerCase()}`);
+        planDetailsHigh.push(`engage in stimulating activities, especially focusing on ${pinyinIdeas}`);
+      }
+
+      const relative = nouns.giverName ? `Dear ${nouns.giverName}` : "Dear Aunt Linda";
+      const timePeriod = (chineseIdeas.includes("暑假") || chineseIdeas.includes("夏")) ? "this upcoming summer holiday" : "my near future";
+
+      composition = `${relative},\nHow have you been? I hope everything goes well with you. I am writing to share my exciting plans for ${timePeriod}. Firstly, I prepare to ${planDetails[0] || "enjoy my free time"}.${planDetails[1] ? " Secondly, I also plan to " + planDetails[1] + "." : ""} These plans will make my vacation both active and meaningful. I really hope we can meet each other soon!\nBest love,\nJerry.`;
+
+      const p1 = planDetailsHigh[0] || "arrange a structured daily routine to relax";
+      const p2 = planDetailsHigh[1] ? `In addition, I intend to ${planDetailsHigh[1]}, which will surely enrich my personal development.` : "This will keep me both physically and mentally active.";
+      
+      highScoreVersion = `${relative},\nI hope this letter finds you in the excellent health and high spirits. I cannot wait to share the thrilling updates regarding my upcoming plans for ${timePeriod}. Eager to enjoy a rewarding break, I have decided to ${p1}. ${p2} I am thoroughly convinced that these experiences will be extremely beneficial. I look forward to meeting up with you soon.\nSincere love,\nJerry.`;
+
+      const p1Annotated = planDetailsHigh[0] ? `<strong>${planDetailsHigh[0]}</strong> <span class="bg-emerald-50 border border-emerald-100 px-1 text-emerald-700 font-semibold rounded mx-0.5 text-xs inline-block" title="根据你输入的意图个性化翻译">${planDetailsHigh[0].includes("journey") ? "[核心表达: 开启精彩旅程]" : "[精妙表达: 潜心阅读]"}</span>` : "arrange a structured daily routine to relax";
+      const p2Annotated = planDetailsHigh[1] ? `In addition, I intend to <strong>${planDetailsHigh[1]}</strong> <span class="bg-amber-50 border border-amber-100 px-1 text-amber-700 font-semibold rounded mx-0.5 text-xs inline-block" title="个性化意图生成，拓宽学术视野">[高分短语: 拓宽学术视野 / 保持身心健康]</span>, which will surely enrich my personal development` : "This will keep me both physically and mentally active";
+
+      modelAnswer = `${relative},<br/><strong>I hope this letter finds you in the excellent health and high spirits</strong> <span class="bg-indigo-50 border border-indigo-100 px-1 text-indigo-700 font-semibold rounded mx-0.5 text-xs inline-block" title="英文书信黄金开头文雅句">[句式: I hope this letter finds you...]</span>. I cannot write to you without sharing the <strong>thrilling updates</strong> <span class="bg-emerald-50 border border-emerald-100 px-1 text-emerald-700 font-semibold rounded mx-0.5 text-xs inline-block" title="取代 exciting news">[亮点: thrilling updates]</span> regarding my upcoming plans for ${timePeriod}. Eager to enjoy a rewarding break, I have decided to ${p1Annotated}. ${p2Annotated}. I <strong>look forward to meeting up</strong> <span class="bg-pink-50 border border-pink-100 px-1 text-pink-700 font-semibold rounded mx-0.5 text-xs inline-block" title="to是介词，后面接动名词">[语法扣分预防点: look forward to meeting up]</span> with you soon.<br/>Sincere love,<br/>Jerry.`;
+    } else {
+      const relative = nouns.giverName ? `Dear ${nouns.giverName}` : "Dear Aunt Linda";
+      const play = nouns.bookTitle || "our beautiful school play";
+      composition = composition
+        .replace(/Dear Aunt Linda/g, relative)
+        .replace(/'Tom Sawyer'/g, `'${play}'`);
+      highScoreVersion = highScoreVersion
+        .replace(/Dear Aunt Linda/g, relative)
+        .replace(/English drama festival/g, `drama festival performing '${play}'`);
+      modelAnswer = modelAnswer
+        .replace(/Dear Aunt Linda/g, relative)
+        .replace(/academic achievements/g, `achievements in performing '${play}'`);
+    }
+  } else if (taskId === "9") {
+    const rName = nouns.restaurantName || "Sunshine Eatery";
+    const place = nouns.placeName || "near our school";
+    const dish = nouns.dishName || "delicious beef noodles";
+    composition = composition
+      .replace(/Nanjing Road/g, place)
+      .replace(/'Green Oasis'/g, `'${rName}'`)
+      .replace(/baked salmon with herbs, is a mouth-watering delicacy/g, `${dish}, is an incredible masterpiece`)
+      .replace(/The fish/g, "The delicacy");
+
+    highScoreVersion = highScoreVersion
+      .replace(/Shanghai/g, place)
+      .replace(/'Green Oasis'/g, `'${rName}'`)
+      .replace(/the baked salmon is a mouth-watering delicacy/g, `${dish} is a delicious delicacy`);
+
+    modelAnswer = modelAnswer
+      .replace(/Shanghai/g, place)
+      .replace(/'Green Oasis'/g, `'${rName}'`)
+      .replace(/the baked salmon/g, dish);
+  } else if (taskId === "10") {
+    const bookTitle = nouns.bookTitle || "The Emperor's New Clothes";
+    const author = nouns.authorName || "Andersen";
+    composition = composition
+      .replace(/'Surprise Endings'/g, `'${bookTitle}'`)
+      .replace(/O\. Henry/g, author)
+      .replace(/two characters who plan to meet after twenty years/g, "a fascinating moral theme");
+
+    highScoreVersion = highScoreVersion
+      .replace(/'Surprise Endings'/g, `'${bookTitle}'`)
+      .replace(/O\. Henry/g, author)
+      .replace(/reunion of two childhood companions after twenty years/g, "wonderful moral lesson");
+
+    modelAnswer = modelAnswer
+      .replace(/'Surprise Endings'/g, `'${bookTitle}'`)
+      .replace(/O\. Henry/g, author);
+  } else if (taskId === "11") {
+    const gift = nouns.giftName || "a lovely milestone memory token";
+    const _giver = nouns.giverName || "my dear friend";
+    composition = composition
+      .replace(/old dictionary from my grandfather/g, `${gift} from ${_giver}`)
+      .replace(/he handed it to me/g, `they handed it to me`)
+      .replace(/his love/g, `their deep care`);
+
+    highScoreVersion = highScoreVersion
+      .replace(/grandfather's dictionary/g, `${gift} from ${_giver}`)
+      .replace(/by my grandfather/g, `by ${_giver}`);
+
+    modelAnswer = modelAnswer
+      .replace(/grandfather's dictionary/g, `${gift} from ${_giver}`);
+  } else if (taskId === "12") {
+    const sport = nouns.activityName || "Badminton";
+    composition = composition
+      .replace(/Basketball/g, sport)
+      .replace(/basketball/g, sport.toLowerCase());
+    highScoreVersion = highScoreVersion
+      .replace(/Basketball/g, sport);
+    modelAnswer = modelAnswer
+      .replace(/Basketball/g, sport);
+  } else if (taskId === "13") {
+    const companion = nouns.companionName || "Tom";
+    const subject = nouns.subjectName || "important school notes";
+    composition = composition
+      .replace(/Dear Tom/g, `Dear ${companion}`)
+      .replace(/English lesson notes/g, subject);
+    highScoreVersion = highScoreVersion
+      .replace(/Dear Tom/g, `Dear ${companion}`)
+      .replace(/lesson notes/g, subject);
+    modelAnswer = modelAnswer
+      .replace(/Dear Tom/g, `Dear ${companion}`)
+      .replace(/lesson notes/g, subject);
   }
 
+  // Render a tailored outline structure, integrating native chinese ideas if supplied
   const outline = [
     `Paragraph 1: Introduction (${task.structure[0]})`,
     `   - Student Ideas: ${chineseIdeas || "基于考纲大纲合理引入"}`,
@@ -742,12 +961,11 @@ Return response in strict JSON format.`;
     return res.status(200).json({ ...parsedData, isFallback: false });
 
   } catch (error: any) {
-    console.error("[API ERROR] /api/writing-coach FULL SERVER LOG DETAILS:", error);
-    const isQuotaError = error?.status === 429 || error?.code === 429 || JSON.stringify(error).includes("429") || JSON.stringify(error).includes("quota");
+    const isQuotaError = error?.status === 429 || error?.code === 429 || JSON.stringify(error).includes("429") || JSON.stringify(error).includes("quota") || JSON.stringify(error).includes("RESOURCE_EXHAUSTED");
     if (isQuotaError) {
-      console.log("[Info] Gemini API quota limit met, running custom writing coach fallback.");
+       console.warn("[API WARNING] Gemini API quota limit met, running custom writing coach fallback.");
     } else {
-      console.log("[Info] Gemini API transiently offline, running custom writing coach fallback.");
+       console.error("[API ERROR] /api/writing-coach Exception caught in Vercel handler:", error);
     }
     try {
       const fallbackResult = getSimulatedWritingFallback(taskId, chineseIdeas);
