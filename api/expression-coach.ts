@@ -334,12 +334,47 @@ Remember:
       }
     });
 
-    const resultText = response.text || "{}";
+    // 2 & 3. Validation for Gemini response candidates and elements presence checks before reading
+    if (!response) {
+      throw new Error("Gemini API returned an completely undefined response object.");
+    }
+
+    if (!response.candidates) {
+      throw new Error("Gemini API response possesses no candidates array. The request might have been rejected due to system safeguards.");
+    }
+
+    if (response.candidates.length === 0) {
+      throw new Error("Gemini API returned an empty candidates list. This generally happens when the content is completely blocked by safety filters or recitation checks.");
+    }
+
+    const candidate = response.candidates[0];
+    if (!candidate) {
+      throw new Error("Gemini API candidate[0] is null/undefined despite non-zero array length.");
+    }
+
+    if (!candidate.content) {
+      throw new Error("Gemini API candidate[0] contains no content property. The generated output might have been censored or cut off midway.");
+    }
+
+    if (!candidate.content.parts || candidate.content.parts.length === 0) {
+      throw new Error("Gemini API candidate[0].content has an empty or missing 'parts' array.");
+    }
+
+    const firstPart = candidate.content.parts[0];
+    if (!firstPart) {
+      throw new Error("Gemini API candidate[0].content.parts[0] is null/undefined.");
+    }
+
+    const resultText = firstPart.text;
+    if (resultText === undefined || resultText === null) {
+      throw new Error("Gemini API candidate[0].content.parts[0] contains empty or missing text field.");
+    }
+
     const parsedData = JSON.parse(resultText);
     return res.status(200).json(parsedData);
 
   } catch (error: any) {
-    console.log("[Info] API /api/expression-coach error, running fallback:", error);
+    console.error("[API ERROR] /api/expression-coach error details:", error);
     return res.status(200).json(getDynamicHeuristicFallback(chineseText));
   }
 }

@@ -471,12 +471,47 @@ Provide the output in JSON format with two fields:
           required: ["speechText", "chineseTranslation"]
         }
       }
-    });
+    }); 
+    // 2 & 3. Validation for Gemini response candidates and elements presence checks before reading
+    if (!response) {
+      throw new Error("Gemini API returned an completely undefined response object.");
+    }
 
-    const resultText = response.text || "{}";
+    if (!response.candidates) {
+      throw new Error("Gemini API response possesses no candidates array. The request might have been rejected due to system safeguards.");
+    }
+
+    if (response.candidates.length === 0) {
+      throw new Error("Gemini API returned an empty candidates list. This generally happens when the content is completely blocked by safety filters or recitation checks.");
+    }
+
+    const candidate = response.candidates[0];
+    if (!candidate) {
+      throw new Error("Gemini API candidate[0] is null/undefined despite non-zero array length.");
+    }
+
+    if (!candidate.content) {
+      throw new Error("Gemini API candidate[0] contains no content property. The generated output might have been censored or cut off midway.");
+    }
+
+    if (!candidate.content.parts || candidate.content.parts.length === 0) {
+      throw new Error("Gemini API candidate[0].content has an empty or missing 'parts' array.");
+    }
+
+    const firstPart = candidate.content.parts[0];
+    if (!firstPart) {
+      throw new Error("Gemini API candidate[0].content.parts[0] is null/undefined.");
+    }
+
+    const resultText = firstPart.text;
+    if (resultText === undefined || resultText === null) {
+      throw new Error("Gemini API candidate[0].content.parts[0] contains empty or missing text field.");
+    }
+ 
     const parsedData = JSON.parse(resultText);
     res.json(parsedData);
   } catch (error: any) {
+    console.error("[API ERROR] /api/chat Exception caught in server.ts:", error);
     const isQuotaError = error?.status === 429 || error?.code === 429 || JSON.stringify(error).includes("429") || JSON.stringify(error).includes("quota");
     if (isQuotaError) {
       console.log("[Info] Gemini API quota limit met, starting local conversational recovery system for coach:", coachId);
@@ -585,12 +620,47 @@ Return a JSON conformant to the response schema. Keep everything supportive and 
           required: ["pronunciation", "fluency", "vocabulary", "grammar", "communication", "overall", "strengths", "suggestions"]
         }
       }
-    });
+    }); 
+    // 2 & 3. Validation for Gemini response candidates and elements presence checks before reading
+    if (!response) {
+      throw new Error("Gemini API returned an completely undefined response object.");
+    }
 
-    const resultText = response.text || "{}";
+    if (!response.candidates) {
+      throw new Error("Gemini API response possesses no candidates array. The request might have been rejected due to system safeguards.");
+    }
+
+    if (response.candidates.length === 0) {
+      throw new Error("Gemini API returned an empty candidates list. This generally happens when the content is completely blocked by safety filters or recitation checks.");
+    }
+
+    const candidate = response.candidates[0];
+    if (!candidate) {
+      throw new Error("Gemini API candidate[0] is null/undefined despite non-zero array length.");
+    }
+
+    if (!candidate.content) {
+      throw new Error("Gemini API candidate[0] contains no content property. The generated output might have been censored or cut off midway.");
+    }
+
+    if (!candidate.content.parts || candidate.content.parts.length === 0) {
+      throw new Error("Gemini API candidate[0].content has an empty or missing 'parts' array.");
+    }
+
+    const firstPart = candidate.content.parts[0];
+    if (!firstPart) {
+      throw new Error("Gemini API candidate[0].content.parts[0] is null/undefined.");
+    }
+
+    const resultText = firstPart.text;
+    if (resultText === undefined || resultText === null) {
+      throw new Error("Gemini API candidate[0].content.parts[0] contains empty or missing text field.");
+    }
+ 
     const reportData = JSON.parse(resultText);
     res.json(reportData);
   } catch (error: any) {
+    console.error("[API ERROR] /api/report Exception caught in server.ts:", error);
     const isQuotaError = error?.status === 429 || error?.code === 429 || JSON.stringify(error).includes("429") || JSON.stringify(error).includes("quota");
     if (isQuotaError) {
       console.log("[Info] Gemini API quota limit met, running local score evaluator.");
@@ -1159,12 +1229,47 @@ Remember:
           required: ["basicVersion", "naturalVersion", "highScoreVersion", "keyExpressions", "followUpQuestion", "simpleTips"]
         }
       }
-    });
+    }); 
+    // 2 & 3. Validation for Gemini response candidates and elements presence checks before reading
+    if (!response) {
+      throw new Error("Gemini API returned an completely undefined response object.");
+    }
 
-    const resultText = response.text || "{}";
+    if (!response.candidates) {
+      throw new Error("Gemini API response possesses no candidates array. The request might have been rejected due to system safeguards.");
+    }
+
+    if (response.candidates.length === 0) {
+      throw new Error("Gemini API returned an empty candidates list. This generally happens when the content is completely blocked by safety filters or recitation checks.");
+    }
+
+    const candidate = response.candidates[0];
+    if (!candidate) {
+      throw new Error("Gemini API candidate[0] is null/undefined despite non-zero array length.");
+    }
+
+    if (!candidate.content) {
+      throw new Error("Gemini API candidate[0] contains no content property. The generated output might have been censored or cut off midway.");
+    }
+
+    if (!candidate.content.parts || candidate.content.parts.length === 0) {
+      throw new Error("Gemini API candidate[0].content has an empty or missing 'parts' array.");
+    }
+
+    const firstPart = candidate.content.parts[0];
+    if (!firstPart) {
+      throw new Error("Gemini API candidate[0].content.parts[0] is null/undefined.");
+    }
+
+    const resultText = firstPart.text;
+    if (resultText === undefined || resultText === null) {
+      throw new Error("Gemini API candidate[0].content.parts[0] contains empty or missing text field.");
+    }
+ 
     const parsedData = JSON.parse(resultText);
     res.json(parsedData);
   } catch (error: any) {
+    console.error("[API ERROR] /api/expression-coach Exception caught in server.ts:", error);
     const isQuotaError = error?.status === 429 || error?.code === 429 || JSON.stringify(error).includes("429") || JSON.stringify(error).includes("quota");
     if (isQuotaError) {
       console.log("[Info] Gemini API quota limit met, running dynamic expression polish matrices.");
@@ -1620,12 +1725,47 @@ Return your response in strict JSON format matching the schema above. All fields
           required: ["simpleSentence", "threeSentenceVersion", "examParagraph", "paragraphTranslation", "keyVocab"]
         }
       }
-    });
+    }); 
+    // 2 & 3. Validation for Gemini response candidates and elements presence checks before reading
+    if (!response) {
+      throw new Error("Gemini API returned an completely undefined response object.");
+    }
 
-    const resultText = response.text || "{}";
+    if (!response.candidates) {
+      throw new Error("Gemini API response possesses no candidates array. The request might have been rejected due to system safeguards.");
+    }
+
+    if (response.candidates.length === 0) {
+      throw new Error("Gemini API returned an empty candidates list. This generally happens when the content is completely blocked by safety filters or recitation checks.");
+    }
+
+    const candidate = response.candidates[0];
+    if (!candidate) {
+      throw new Error("Gemini API candidate[0] is null/undefined despite non-zero array length.");
+    }
+
+    if (!candidate.content) {
+      throw new Error("Gemini API candidate[0] contains no content property. The generated output might have been censored or cut off midway.");
+    }
+
+    if (!candidate.content.parts || candidate.content.parts.length === 0) {
+      throw new Error("Gemini API candidate[0].content has an empty or missing 'parts' array.");
+    }
+
+    const firstPart = candidate.content.parts[0];
+    if (!firstPart) {
+      throw new Error("Gemini API candidate[0].content.parts[0] is null/undefined.");
+    }
+
+    const resultText = firstPart.text;
+    if (resultText === undefined || resultText === null) {
+      throw new Error("Gemini API candidate[0].content.parts[0] contains empty or missing text field.");
+    }
+ 
     const parsedData = JSON.parse(resultText);
     res.json(parsedData);
   } catch (error: any) {
+    console.error("[API ERROR] /api/essay-builder Exception caught in server.ts:", error);
     const isQuotaError = error?.status === 429 || error?.code === 429 || JSON.stringify(error).includes("429") || JSON.stringify(error).includes("quota");
     if (isQuotaError) {
       console.log("[Info] Gemini API quota limit met, running custom essay expander matrix.");
@@ -2233,23 +2373,59 @@ Return response in strict JSON format.`;
         }
       }
     });
+ 
+    // 2 & 3. Validation for Gemini response candidates and elements presence checks before reading
+    if (!response) {
+      throw new Error("Gemini API returned an completely undefined response object.");
+    }
 
-    const resultText = response.text || "{}";
+    if (!response.candidates) {
+      throw new Error("Gemini API response possesses no candidates array. The request might have been rejected due to system safeguards.");
+    }
+
+    if (response.candidates.length === 0) {
+      throw new Error("Gemini API returned an empty candidates list. This generally happens when the content is completely blocked by safety filters or recitation checks.");
+    }
+
+    const candidate = response.candidates[0];
+    if (!candidate) {
+      throw new Error("Gemini API candidate[0] is null/undefined despite non-zero array length.");
+    }
+
+    if (!candidate.content) {
+      throw new Error("Gemini API candidate[0] contains no content property. The generated output might have been censored or cut off midway.");
+    }
+
+    if (!candidate.content.parts || candidate.content.parts.length === 0) {
+      throw new Error("Gemini API candidate[0].content has an empty or missing 'parts' array.");
+    }
+
+    const firstPart = candidate.content.parts[0];
+    if (!firstPart) {
+      throw new Error("Gemini API candidate[0].content.parts[0] is null/undefined.");
+    }
+
+    const resultText = firstPart.text;
+    if (resultText === undefined || resultText === null) {
+      throw new Error("Gemini API candidate[0].content.parts[0] contains empty or missing text field.");
+    }
+ 
     const parsedData = JSON.parse(resultText);
     res.json(parsedData);
   } catch (error: any) {
+    console.error("[API ERROR] /api/writing-coach FULL SERVER LOG DETAILS:", error);
     const isQuotaError = error?.status === 429 || error?.code === 429 || JSON.stringify(error).includes("429") || JSON.stringify(error).includes("quota");
     if (isQuotaError) {
-      console.log("[Info] Gemini API quota limit met, running custom textbook writing matrices.");
+      console.log("[Info] Gemini API quota limit met, running custom writing coach fallback.");
     } else {
-      console.log("[Info] Gemini API transiently offline, running custom textbook writing matrices.");
+      console.log("[Info] Gemini API transiently offline, running custom writing coach fallback.");
     }
     try {
       const fallbackResult = getSimulatedWritingFallback(taskId, chineseIdeas);
       res.json({ ...fallbackResult, isFallback: true });
     } catch (simError: any) {
       res.status(500).json({
-        error: "An error occurred with our textbook writing database.",
+        error: "An error occurred with our writing coach database.",
         details: error.message
       });
     }
